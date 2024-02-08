@@ -218,3 +218,246 @@ INSERT INTO `TitleGenres` VALUES (1,1),(2,1),(3,1),(4,1),(5,2),(6,2),(7,2),(8,2)
 UNLOCK TABLES;
 
 
+/* Create views */
+
+CREATE VIEW `authors_by_bookid` AS
+    SELECT 
+        `books`.`BookID` AS `BookID`,
+        GROUP_CONCAT(`authors`.`LastName`
+            SEPARATOR ',') AS `Author`
+    FROM
+        (((`books`
+        LEFT JOIN `titles` ON ((`titles`.`TitleID` = `books`.`TitleID`)))
+        LEFT JOIN `titleauthors` ON ((`titles`.`TitleID` = `titleauthors`.`TitleID`)))
+        LEFT JOIN `authors` ON ((`authors`.`AuthorID` = `titleauthors`.`AuthorID`)))
+    GROUP BY `books`.`BookID`;
+
+
+CREATE VIEW `available_books_for_mar_07_22` AS
+    SELECT DISTINCT
+        `books`.`BookID` AS `BookID`,
+        `titles`.`Title` AS `Title`,
+        `locations`.`Location` AS `Location`
+    FROM
+        (((((`titles`
+        LEFT JOIN `titleauthors` ON ((`titles`.`TitleID` = `titleauthors`.`TitleID`)))
+        LEFT JOIN `authors` ON ((`authors`.`AuthorID` = `titleauthors`.`AuthorID`)))
+        LEFT JOIN `books` ON ((`titles`.`TitleID` = `books`.`TitleID`)))
+        LEFT JOIN `locations` ON ((`locations`.`LocationID` = `books`.`LocationID`)))
+        LEFT JOIN `loans` ON ((`loans`.`BookID` = `books`.`BookID`)))
+    WHERE
+        `books`.`BookID` IN (SELECT 
+                `books`.`BookID`
+            FROM
+                (((((`titles`
+                LEFT JOIN `titleauthors` ON ((`titles`.`TitleID` = `titleauthors`.`TitleID`)))
+                LEFT JOIN `authors` ON ((`authors`.`AuthorID` = `titleauthors`.`AuthorID`)))
+                LEFT JOIN `books` ON ((`titles`.`TitleID` = `books`.`TitleID`)))
+                LEFT JOIN `locations` ON ((`locations`.`LocationID` = `books`.`LocationID`)))
+                LEFT JOIN `loans` ON ((`loans`.`BookID` = `books`.`BookID`)))
+            WHERE
+                ((`loans`.`CheckOutDate` IS NOT NULL)
+                    AND (`loans`.`ReturnDate` IS NULL)))
+            IS FALSE
+    ORDER BY `locations`.`Location` DESC , `books`.`BookID`;
+
+
+CREATE VIEW `blocked_patrons_for_mar_07_22` AS
+    SELECT 
+        `patrons`.`LastName` AS `Last Name`,
+        `patrons`.`FirstName` AS `First Name`,
+        `phones`.`Phone` AS `Phone`,
+        `cities`.`City` AS `City`
+    FROM
+        ((((((`patrons`
+        JOIN `phones`)
+        JOIN `loans`)
+        JOIN `addresses`)
+        JOIN `cities`)
+        JOIN `books`)
+        JOIN `titles`)
+    WHERE
+        ((`cities`.`CityID` = `addresses`.`CityID`)
+            AND (`addresses`.`AddressID` = `patrons`.`AddressID`)
+            AND (`phones`.`PhoneID` = `patrons`.`PhoneID`)
+            AND (`loans`.`PatronID` = `patrons`.`PatronID`)
+            AND (`loans`.`BookID` = `books`.`BookID`)
+            AND (`books`.`TitleID` = `titles`.`TitleID`)
+            AND (`loans`.`ReturnDate` IS NULL)
+            AND (`loans`.`DueDate` < DATE '2022-03-07'));
+
+
+CREATE VIEW `bookid_author_title` AS
+    SELECT 
+        `authors_by_bookid`.`BookID` AS `BookID`,
+        `authors_by_bookid`.`Author` AS `Author`,
+        `titles`.`Title` AS `Title`
+    FROM
+        ((`authors_by_bookid`
+        LEFT JOIN `books` ON ((`authors_by_bookid`.`BookID` = `books`.`BookID`)))
+        LEFT JOIN `titles` ON ((`books`.`TitleID` = `titles`.`TitleID`)))
+    ORDER BY `authors_by_bookid`.`BookID`;
+SELECT * FROM `bookid_author_title`;
+
+
+CREATE VIEW `catalog` AS
+    SELECT 
+        `bookid_author_title`.`BookID` AS `BookID`,
+        `bookid_author_title`.`Author` AS `Author`,
+        `bookid_author_title`.`Title` AS `Title`,
+        `locations`.`Location` AS `Location`
+    FROM
+        ((`bookid_author_title`
+        LEFT JOIN `books` ON ((`books`.`BookID` = `bookid_author_title`.`BookID`)))
+        LEFT JOIN `locations` ON ((`books`.`LocationID` = `locations`.`LocationID`)))
+    ORDER BY `books`.`BookID`;
+
+
+CREATE VIEW `catalog_available_by_author` AS
+    SELECT 
+        `catalog`.`BookID` AS `BookID`,
+        `catalog`.`Author` AS `Author`,
+        `catalog`.`Title` AS `Title`,
+        `catalog`.`Location` AS `Location`
+    FROM
+        (`catalog`
+        LEFT JOIN `loans` ON ((`loans`.`BookID` = `catalog`.`BookID`)))
+    WHERE
+        (((`loans`.`CheckOutDate` IS NOT NULL)
+            AND (`loans`.`ReturnDate` IS NULL))
+            IS FALSE)
+    ORDER BY `catalog`.`Author`;
+
+
+CREATE VIEW `catalog_available_for_mar07` AS
+    SELECT 
+        `catalog`.`BookID` AS `BookID`,
+        `catalog`.`Author` AS `Author`,
+        `catalog`.`Title` AS `Title`,
+        `catalog`.`Location` AS `Location`
+    FROM
+        (`catalog`
+        LEFT JOIN `loans` ON ((`loans`.`BookID` = `catalog`.`BookID`)))
+    WHERE
+        (((`loans`.`CheckOutDate` IS NOT NULL)
+            AND (`loans`.`ReturnDate` IS NULL))
+            IS FALSE);
+
+
+CREATE VIEW `catalog_full` AS
+    SELECT 
+        `authors_by_bookid`.`BookID` AS `BookID`,
+        `authors_by_bookid`.`Author` AS `Author`,
+        `titles`.`Title` AS `Title`,
+        `locations`.`Location` AS `Location`
+    FROM
+        (((`authors_by_bookid`
+        LEFT JOIN `books` ON ((`authors_by_bookid`.`BookID` = `books`.`BookID`)))
+        LEFT JOIN `titles` ON ((`books`.`TitleID` = `titles`.`TitleID`)))
+        LEFT JOIN `locations` ON ((`books`.`LocationID` = `locations`.`LocationID`)))
+    ORDER BY `authors_by_bookid`.`BookID`;
+
+
+CREATE VIEW `city_where_adventure_book_is` AS
+    SELECT 
+        `books`.`BookID` AS `BookID`,
+        `titles`.`Title` AS `Title`,
+        `genres`.`Genre` AS `Genre`,
+        `cities`.`City` AS `City`
+    FROM
+        (((((((`genres`
+        JOIN `titlegenres`)
+        JOIN `titles`)
+        JOIN `books`)
+        JOIN `loans`)
+        JOIN `patrons`)
+        JOIN `addresses`)
+        JOIN `cities`)
+    WHERE
+        ((`genres`.`GenreID` = `titlegenres`.`GenreID`)
+            AND (`titlegenres`.`TitleID` = `titles`.`TitleID`)
+            AND (`titles`.`TitleID` = `books`.`TitleID`)
+            AND (`books`.`BookID` = `loans`.`BookID`)
+            AND (`loans`.`PatronID` = `patrons`.`PatronID`)
+            AND (`patrons`.`AddressID` = `addresses`.`AddressID`)
+            AND (`addresses`.`CityID` = `cities`.`CityID`)
+            AND (`genres`.`Genre` = 'adventure'));
+SELECT * FROM `city_where_adventure_book_is`;
+
+CREATE VIEW `fiction_books` AS
+    SELECT 
+        `authors`.`LastName` AS `LastName`,
+        `authors`.`FirstName` AS `FirstName`,
+        `titles`.`Title` AS `Title`,
+        `publishers`.`Name` AS `Publisher`
+    FROM
+        (((((`authors`
+        JOIN `titlegenres`)
+        JOIN `titles`)
+        JOIN `publishers`)
+        JOIN `titleauthors`)
+        JOIN `genres`)
+    WHERE
+        ((`genres`.`GenreID` = `titlegenres`.`GenreID`)
+            AND (`titlegenres`.`TitleID` = `titles`.`TitleID`)
+            AND (`titles`.`PublisherID` = `publishers`.`PublisherID`)
+            AND (`titles`.`TitleID` = `titleauthors`.`TitleID`)
+            AND (`titleauthors`.`AuthorID` = `authors`.`AuthorID`)
+            AND (`genres`.`Genre` = 'fiction'))
+    ORDER BY `authors`.`LastName`;
+
+
+CREATE VIEW `number_of_books_by_branch` AS
+    SELECT 
+        COUNT(`books`.`BookID`) AS `Number of books`,
+        `locations`.`Location` AS `Location`
+    FROM
+        (`books`
+        JOIN `locations`)
+    WHERE
+        (`books`.`LocationID` = `locations`.`LocationID`)
+    GROUP BY `locations`.`Location`
+    ORDER BY `locations`.`Location` DESC;
+
+
+CREATE VIEW `number_of_fiction_and_nonfiction_by_branch` AS
+    SELECT 
+        `genres`.`Genre` AS `Genre`,
+        COUNT(`books`.`BookID`) AS `Number of books`,
+        `locations`.`Location` AS `Location`
+    FROM
+        ((((`genres`
+        JOIN `titlegenres`)
+        JOIN `titles`)
+        JOIN `books`)
+        JOIN `locations`)
+    WHERE
+        ((`genres`.`GenreID` = `titlegenres`.`GenreID`)
+            AND (`titlegenres`.`TitleID` = `titles`.`TitleID`)
+            AND (`titles`.`TitleID` = `books`.`TitleID`)
+            AND (`books`.`LocationID` = `locations`.`LocationID`)
+            AND ((`genres`.`GenreID` = 1)
+            OR (`genres`.`GenreID` = 2)))
+    GROUP BY `locations`.`Location` , `genres`.`GenreID`
+    ORDER BY `locations`.`Location` DESC;
+
+
+CREATE VIEW `unavailable_books_for_mar_7_22` AS
+    SELECT 
+        `books`.`BookID` AS `BookID`,
+        `authors`.`LastName` AS `LastName`,
+        `authors`.`FirstName` AS `FirstName`,
+        `titles`.`Title` AS `Title`,
+        `locations`.`Location` AS `Location`
+    FROM
+        (((((`titles`
+        LEFT JOIN `titleauthors` ON ((`titles`.`TitleID` = `titleauthors`.`TitleID`)))
+        LEFT JOIN `authors` ON ((`authors`.`AuthorID` = `titleauthors`.`AuthorID`)))
+        LEFT JOIN `books` ON ((`titles`.`TitleID` = `books`.`TitleID`)))
+        LEFT JOIN `locations` ON ((`locations`.`LocationID` = `books`.`LocationID`)))
+        LEFT JOIN `loans` ON ((`loans`.`BookID` = `books`.`BookID`)))
+    WHERE
+        ((`loans`.`CheckOutDate` IS NOT NULL)
+            AND (`loans`.`ReturnDate` IS NULL))
+    ORDER BY `locations`.`Location` DESC , `authors`.`LastName`;
+
