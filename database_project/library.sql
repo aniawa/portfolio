@@ -1,6 +1,34 @@
 /* Create tables */
 
 
+DROP TABLE IF EXISTS `Cities`;
+CREATE TABLE `Cities` (
+  `CityID` int NOT NULL AUTO_INCREMENT,
+  `City` varchar(30) NOT NULL,
+  `ZIP` varchar(5) NOT NULL,
+  PRIMARY KEY (`CityID`),
+  KEY `City_idx` (`City`),
+  KEY `ZIP_idx` (`ZIP`)
+);
+
+LOCK TABLES `Cities` WRITE;
+INSERT INTO `Cities` VALUES (1,'Carpentersville','60110'),(2,'East Dundee','60118'),(3,'Sleepy Hollow','60118'),(4,'West Dundee','60110');
+UNLOCK TABLES;
+
+
+DROP TABLE IF EXISTS `Genres`;
+CREATE TABLE `Genres` (
+  `GenreID` int NOT NULL AUTO_INCREMENT,
+  `Genre` varchar(30) NOT NULL,
+  PRIMARY KEY (`GenreID`),
+  UNIQUE KEY `Genre_UNIQUE` (`Genre`)
+);
+
+LOCK TABLES `Genres` WRITE;
+INSERT INTO `Genres` VALUES (4,'adventure'),(7,'autobiography'),(12,'contemporary realistic'),(10,'cookbook'),(11,'fantasy'),(1,'fiction'),(8,'history'),(5,'horror'),(2,'nonfiction'),(3,'novel'),(9,'popular science'),(6,'psychological');
+UNLOCK TABLES;
+
+
 DROP TABLE IF EXISTS `Addresses`;
 CREATE TABLE `Addresses` (
   `AddressID` int NOT NULL AUTO_INCREMENT,
@@ -15,6 +43,7 @@ CREATE TABLE `Addresses` (
 LOCK TABLES `Addresses` WRITE;
 INSERT INTO `Addresses` VALUES (1,'10772 Berry Ct',1),(2,'504 Strawberry Ln, Apt.2',2),(3,'3 Plum Rd',3),(4,'99 Apple St, Apt.8',4);
 UNLOCK TABLES;
+
 
 DROP TABLE IF EXISTS `Authors`;
 CREATE TABLE `Authors` (
@@ -34,6 +63,56 @@ LOCK TABLES `Authors` WRITE;
 INSERT INTO `Authors` VALUES (1,'Page','Karen','USA',NULL,NULL),(2,'Hadfield','Chris','Canada',1959,NULL),(3,'Singh','Simon','UK',1964,NULL),(4,'Roberts','Gregory David','Australia',1952,NULL),(5,'King','Stephen','USA',1947,NULL),(6,'Przybylek','Agata','Poland',NULL,NULL),(7,'Rogozinski','Alek','Poland',NULL,NULL),(8,'Adams','Fred','USA',NULL,NULL),(9,'Laughlin','Greg','USA',NULL,NULL);
 UNLOCK TABLES;
 
+
+DROP TABLE IF EXISTS `Locations`;
+CREATE TABLE `Locations` (
+  `LocationID` int NOT NULL AUTO_INCREMENT,
+  `Location` varchar(20) NOT NULL DEFAULT 'main',
+  PRIMARY KEY (`LocationID`),
+  UNIQUE KEY `Location_UNIQUE` (`Location`)
+);
+
+LOCK TABLES `Locations` WRITE;
+INSERT INTO `Locations` VALUES (2,'branch'),(1,'main');
+UNLOCK TABLES;
+
+
+DROP TABLE IF EXISTS `Publishers`;
+CREATE TABLE `Publishers` (
+  `PublisherID` int NOT NULL AUTO_INCREMENT,
+  `Name` varchar(50) NOT NULL,
+  PRIMARY KEY (`PublisherID`),
+  UNIQUE KEY `Name_UNIQUE` (`Name`)
+);
+
+LOCK TABLES `Publishers` WRITE;
+INSERT INTO `Publishers` VALUES (6,'Czwarta Strona'),(4,'Fourth Estate'),(1,'Little, Brown and Company'),(2,'Pocket Books'),(3,'Skarpa Warszawska'),(5,"St.Martin's Griffin"),(7,'The Free Press');
+UNLOCK TABLES;
+
+
+DROP TABLE IF EXISTS `Titles`;
+CREATE TABLE `Titles` (
+  `TitleID` int NOT NULL AUTO_INCREMENT,
+  `Title` varchar(50) NOT NULL,
+  `ISBN` varchar(17) NOT NULL,
+  `PublisherID` int NOT NULL,
+  `PublishYear` year NOT NULL,
+  `Language` varchar(20) NOT NULL DEFAULT 'English',
+  `Synopsis` varchar(255) DEFAULT NULL,
+  `Pages` int DEFAULT NULL,
+  PRIMARY KEY (`TitleID`),
+  UNIQUE KEY `ISBN_UNIQUE` (`ISBN`),
+  KEY `PublisherID_idx` (`PublisherID`),
+  KEY `Title_idx` (`Title`),
+  KEY `Language_idx` (`Language`),
+  CONSTRAINT `PublisherID_Titles` FOREIGN KEY (`PublisherID`) REFERENCES `Publishers` (`PublisherID`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+LOCK TABLES `Titles` WRITE;
+INSERT INTO `Titles` VALUES (1,'Zlap mnie, jesli umiesz','978-83-66644-80-9',3,2021,'Polish','Male miastecko na Podlasiu, opuszczony dworek, a w nim...',300),(2,'Milosc i inne nieszczescia','978-83-66278-48-6',6,2019,'Polish',NULL,386),(3,'The girl who loved Tom Gordon','0-671-04285-8',2,2000,'English','On a six-mile hike on the Maine-New Hampshire branch of the Appalachian Trail, nine-year-old Trisha quickly tires of the constant bickering between her older brother and her recently divorced mother.',264),(4,'Shantaram','0-312-33053-7',5,2005,'English',NULL,936),(5,'The code book','1-85702-879-1',4,1999,'English',NULL,NULL),(6,"An astronaut\'s guide to life on Earth",'978-0-316-25301-7',1,2013,'English','Col.Chris Hadfield has spent decades training as an astronaut and has logged nearly four thousand hours in space.',NULL),(7,'The vegetarian flavor bible','978-0-316-24418-3',1,2014,'English',NULL,NULL),(8,'The five ages of the Universe','0-684-85422-8',7,1999,'English',NULL,251);
+UNLOCK TABLES;
+
+
 DROP TABLE IF EXISTS `Books`;
 CREATE TABLE `Books` (
   `BookID` int NOT NULL AUTO_INCREMENT,
@@ -50,62 +129,19 @@ LOCK TABLES `Books` WRITE;
 INSERT INTO `Books` VALUES (1,1,1),(2,1,2),(3,2,2),(4,3,1),(5,3,2),(6,4,1),(7,5,1),(8,6,1),(9,6,2),(10,6,1),(11,7,1),(12,7,2),(13,8,1);
 UNLOCK TABLES;
 
-DROP TABLE IF EXISTS `Cities`;
-CREATE TABLE `Cities` (
-  `CityID` int NOT NULL AUTO_INCREMENT,
-  `City` varchar(30) NOT NULL,
-  `ZIP` varchar(5) NOT NULL,
-  PRIMARY KEY (`CityID`),
-  KEY `City_idx` (`City`),
-  KEY `ZIP_idx` (`ZIP`)
+
+DROP TABLE IF EXISTS `Phones`;
+CREATE TABLE `Phones` (
+  `PhoneID` int NOT NULL AUTO_INCREMENT,
+  `Phone` varchar(7) NOT NULL,
+  PRIMARY KEY (`PhoneID`),
+  UNIQUE KEY `Phone_UNIQUE` (`Phone`)
 );
 
-LOCK TABLES `Cities` WRITE;
-INSERT INTO `Cities` VALUES (1,'Carpentersville','60110'),(2,'East Dundee','60118'),(3,'Sleepy Hollow','60118'),(4,'West Dundee','60110');
+LOCK TABLES `Phones` WRITE;
+INSERT INTO `Phones` VALUES (1,'5551234'),(2,'5551235'),(3,'5551236'),(4,'5551237');
 UNLOCK TABLES;
 
-DROP TABLE IF EXISTS `Genres`;
-CREATE TABLE `Genres` (
-  `GenreID` int NOT NULL AUTO_INCREMENT,
-  `Genre` varchar(30) NOT NULL,
-  PRIMARY KEY (`GenreID`),
-  UNIQUE KEY `Genre_UNIQUE` (`Genre`)
-);
-
-LOCK TABLES `Genres` WRITE;
-INSERT INTO `Genres` VALUES (4,'adventure'),(7,'autobiography'),(12,'contemporary realistic'),(10,'cookbook'),(11,'fantasy'),(1,'fiction'),(8,'history'),(5,'horror'),(2,'nonfiction'),(3,'novel'),(9,'popular science'),(6,'psychological');
-UNLOCK TABLES;
-
-DROP TABLE IF EXISTS `Loans`;
-CREATE TABLE `Loans` (
-  `LoanID` int NOT NULL AUTO_INCREMENT,
-  `BookID` int NOT NULL,
-  `PatronID` int NOT NULL,
-  `CheckOutDate` datetime NOT NULL,
-  `DueDate` datetime NOT NULL,
-  `ReturnDate` datetime DEFAULT NULL,
-  PRIMARY KEY (`LoanID`),
-  KEY `BookID_idx` (`BookID`),
-  KEY `PatronID_idx` (`PatronID`),
-  CONSTRAINT `BookID_Loans` FOREIGN KEY (`BookID`) REFERENCES `Books` (`BookID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `PatronID_Loans` FOREIGN KEY (`PatronID`) REFERENCES `Patrons` (`PatronID`) ON DELETE CASCADE ON UPDATE CASCADE
-);
-
-LOCK TABLES `Loans` WRITE;
-INSERT INTO `Loans` VALUES (1,1,1,'2022-02-01 00:00:00','2022-02-15 00:00:00','2022-02-14 00:00:00'),(2,2,2,'2022-02-02 00:00:00','2022-02-16 00:00:00',NULL),(3,4,4,'2022-02-28 00:00:00','2022-03-07 00:00:00',NULL),(4,5,1,'2022-02-16 00:00:00','2022-03-02 00:00:00','2022-03-02 00:00:00'),(5,6,6,'2022-03-07 00:00:00','2022-03-21 00:00:00',NULL),(6,8,5,'2022-02-15 00:00:00','2022-03-01 00:00:00',NULL);
-UNLOCK TABLES;
-
-DROP TABLE IF EXISTS `Locations`;
-CREATE TABLE `Locations` (
-  `LocationID` int NOT NULL AUTO_INCREMENT,
-  `Location` varchar(20) NOT NULL DEFAULT 'main',
-  PRIMARY KEY (`LocationID`),
-  UNIQUE KEY `Location_UNIQUE` (`Location`)
-);
-
-LOCK TABLES `Locations` WRITE;
-INSERT INTO `Locations` VALUES (2,'branch'),(1,'main');
-UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `Patrons`;
 CREATE TABLE `Patrons` (
@@ -129,29 +165,26 @@ LOCK TABLES `Patrons` WRITE;
 INSERT INTO `Patrons` VALUES (1,'Smith','John','1951-06-25',1,1),(2,'Smith','Mary','1950-08-01',1,1),(3,'Smith','Margaret','1993-02-25',1,2),(4,'Brown','Julia','2003-02-12',2,2),(5,'Page','Chris','2000-06-04',3,3),(6,'Nowak','Dorota','1988-11-27',4,4);
 UNLOCK TABLES;
 
-DROP TABLE IF EXISTS `Phones`;
-CREATE TABLE `Phones` (
-  `PhoneID` int NOT NULL AUTO_INCREMENT,
-  `Phone` varchar(7) NOT NULL,
-  PRIMARY KEY (`PhoneID`),
-  UNIQUE KEY `Phone_UNIQUE` (`Phone`)
+
+DROP TABLE IF EXISTS `Loans`;
+CREATE TABLE `Loans` (
+  `LoanID` int NOT NULL AUTO_INCREMENT,
+  `BookID` int NOT NULL,
+  `PatronID` int NOT NULL,
+  `CheckOutDate` datetime NOT NULL,
+  `DueDate` datetime NOT NULL,
+  `ReturnDate` datetime DEFAULT NULL,
+  PRIMARY KEY (`LoanID`),
+  KEY `BookID_idx` (`BookID`),
+  KEY `PatronID_idx` (`PatronID`),
+  CONSTRAINT `BookID_Loans` FOREIGN KEY (`BookID`) REFERENCES `Books` (`BookID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `PatronID_Loans` FOREIGN KEY (`PatronID`) REFERENCES `Patrons` (`PatronID`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-LOCK TABLES `Phones` WRITE;
-INSERT INTO `Phones` VALUES (1,'5551234'),(2,'5551235'),(3,'5551236'),(4,'5551237');
+LOCK TABLES `Loans` WRITE;
+INSERT INTO `Loans` VALUES (1,1,1,'2022-02-01 00:00:00','2022-02-15 00:00:00','2022-02-14 00:00:00'),(2,2,2,'2022-02-02 00:00:00','2022-02-16 00:00:00',NULL),(3,4,4,'2022-02-28 00:00:00','2022-03-07 00:00:00',NULL),(4,5,1,'2022-02-16 00:00:00','2022-03-02 00:00:00','2022-03-02 00:00:00'),(5,6,6,'2022-03-07 00:00:00','2022-03-21 00:00:00',NULL),(6,8,5,'2022-02-15 00:00:00','2022-03-01 00:00:00',NULL);
 UNLOCK TABLES;
 
-DROP TABLE IF EXISTS `Publishers`;
-CREATE TABLE `Publishers` (
-  `PublisherID` int NOT NULL AUTO_INCREMENT,
-  `Name` varchar(50) NOT NULL,
-  PRIMARY KEY (`PublisherID`),
-  UNIQUE KEY `Name_UNIQUE` (`Name`)
-);
-
-LOCK TABLES `Publishers` WRITE;
-INSERT INTO `Publishers` VALUES (6,'Czwarta Strona'),(4,'Fourth Estate'),(1,'Little, Brown and Company'),(2,'Pocket Books'),(3,'Skarpa Warszawska'),(5,"St.Martin's Griffin"),(7,'The Free Press');
-UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `TitleAuthors`;
 CREATE TABLE `TitleAuthors` (
@@ -168,6 +201,7 @@ LOCK TABLES `TitleAuthors` WRITE;
 INSERT INTO `TitleAuthors` VALUES (7,1),(6,2),(5,3),(4,4),(3,5),(2,6),(1,7),(8,8),(8,9);
 UNLOCK TABLES;
 
+
 DROP TABLE IF EXISTS `TitleGenres`;
 CREATE TABLE `TitleGenres` (
   `TitleID` int NOT NULL,
@@ -183,25 +217,4 @@ LOCK TABLES `TitleGenres` WRITE;
 INSERT INTO `TitleGenres` VALUES (1,1),(2,1),(3,1),(4,1),(5,2),(6,2),(7,2),(8,2),(1,3),(2,3),(3,3),(4,3),(1,4),(4,4),(3,5),(3,6),(4,7),(6,7),(5,8),(5,9),(8,9),(7,10),(2,12);
 UNLOCK TABLES;
 
-DROP TABLE IF EXISTS `Titles`;
-CREATE TABLE `Titles` (
-  `TitleID` int NOT NULL AUTO_INCREMENT,
-  `Title` varchar(50) NOT NULL,
-  `ISBN` varchar(17) NOT NULL,
-  `PublisherID` int NOT NULL,
-  `PublishYear` year NOT NULL,
-  `Language` varchar(20) NOT NULL DEFAULT 'English',
-  `Synopsis` varchar(255) DEFAULT NULL,
-  `Pages` int DEFAULT NULL,
-  PRIMARY KEY (`TitleID`),
-  UNIQUE KEY `ISBN_UNIQUE` (`ISBN`),
-  KEY `PublisherID_idx` (`PublisherID`),
-  KEY `Title_idx` (`Title`),
-  KEY `Language_idx` (`Language`),
-  CONSTRAINT `PublisherID_Titles` FOREIGN KEY (`PublisherID`) REFERENCES `Publishers` (`PublisherID`) ON DELETE CASCADE ON UPDATE CASCADE
-);
-
-LOCK TABLES `Titles` WRITE;
-INSERT INTO `Titles` VALUES (1,'Zlap mnie, jesli umiesz','978-83-66644-80-9',3,2021,'Polish','Male miastecko na Podlasiu, opuszczony dworek, a w nim...',300),(2,'Milosc i inne nieszczescia','978-83-66278-48-6',6,2019,'Polish',NULL,386),(3,'The girl who loved Tom Gordon','0-671-04285-8',2,2000,'English','On a six-mile hike on the Maine-New Hampshire branch of the Appalachian Trail, nine-year-old Trisha quickly tires of the constant bickering between her older brother and her recently divorced mother.',264),(4,'Shantaram','0-312-33053-7',5,2005,'English',NULL,936),(5,'The code book','1-85702-879-1',4,1999,'English',NULL,NULL),(6,'An astronaut\'s guide to life on Earth','978-0-316-25301-7',1,2013,'English','Col.Chris Hadfield has spent decades training as an astronaut and has logged nearly four thousand hours in space.',NULL),(7,'The vegetarian flavor bible','978-0-316-24418-3',1,2014,'English',NULL,NULL),(8,'The five ages of the Universe','0-684-85422-8',7,1999,'English',NULL,251);
-UNLOCK TABLES;
 
