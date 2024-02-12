@@ -218,6 +218,15 @@ INSERT INTO `TitleGenres` VALUES (1,1),(2,1),(3,1),(4,1),(5,2),(6,2),(7,2),(8,2)
 UNLOCK TABLES;
 
 
+-- Change data types in 'Loans' table for better presentation
+ALTER TABLE `Loans`
+MODIFY COLUMN `DueDate` DATE,
+MODIFY COLUMN `ReturnDate` DATE,
+MODIFY COLUMN `CheckOutDate` DATE;
+
+
+
+
 /* Create views */
 
 CREATE VIEW `authors_by_bookid` AS
